@@ -28,6 +28,7 @@ const qualities = computed(() => movieData.value?.qualities.map((q) => ({ qualit
 const selectedQuality = ref("");
 const isDropdownOpen = ref(false);
 const dropdownRef = ref(null);
+const videoContainerRef = ref(null);
 
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
@@ -78,6 +79,36 @@ const skip = (sec) => {
   if (videoRef.value) videoRef.value.currentTime += sec;
 };
 
+const progress = ref(0);
+const seek = (e) => {
+  if (!videoRef.value) return;
+  videoRef.value.currentTime = (e.target.value / 100) * videoRef.value.duration;
+};
+const updateProgress = () => {
+  if (!videoRef.value?.duration) return;
+  progress.value = (videoRef.value.currentTime / videoRef.value.duration) * 100;
+};
+
+const volume = ref(1);
+const playbackRate = ref(1);
+
+watch(volume, (v) => {
+  if (videoRef.value) videoRef.value.volume = v;
+});
+watch(playbackRate, (r) => {
+  if (videoRef.value) videoRef.value.playbackRate = r;
+});
+
+const toggleFullScreen = () => {
+  const el = videoContainerRef.value;
+  if (!el) return;
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else {
+    el.requestFullscreen();
+  }
+};
+
 onMounted(async () => {
   document.addEventListener("click", handleClickOutside);
   const cached = sessionStorage.getItem("movieData");
@@ -97,7 +128,10 @@ onMounted(async () => {
   currentSource.value = movieData.value.qualities.find((q) => q.quality === defaultQ + "p")?.url;
 
   videoRef.value.addEventListener("loadedmetadata", updateRemaining);
-  videoRef.value.addEventListener("timeupdate", updateRemaining);
+  videoRef.value.addEventListener("timeupdate", () => {
+    updateRemaining();
+    updateProgress();
+  });
 });
 
 onUnmounted(() => {
@@ -108,9 +142,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-12 text-neutral-100 bg-neutral-800 h-screen px-20 pt-10">
+  <div class="grid grid-cols-12 text-neutral-100 bg-neutral-800 h-screen lg:px-20 sm:px-3 overflow-y-auto pt-10">
     <!-- Name & quality -->
-    <div class="col-span-7 flex justify-between items-center">
+    <div ref="videoContainerRef" class="lg:col-span-7 col-span-full flex lg:flex-row justify-between lg:items-center flex-col items-start">
       <div class="flex items-center gap-2">
         <!-- show quality -->
         <div class="flex flex-col justify-center rounded-lg items-center bg-red-700 p-1 !px-[2px]">
@@ -123,7 +157,7 @@ onUnmounted(() => {
           <p class="text-sm">{{ movieData?.description }}</p>
         </div>
       </div>
-      <div class="flex items-center gap-5">
+      <div class="flex items-center justify-between lg:mt-0 sm:mt-5 gap-5">
         <!-- Season & Part -->
         <div class="flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -133,7 +167,7 @@ onUnmounted(() => {
               stroke-linejoin="round"
               d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
           </svg>
-            <p>Season 2 Episode 5</p>
+          <p>Season 2 Episode 5</p>
         </div>
         <!-- Quality dropdown -->
         <div class="dropdown" ref="dropdownRef">
@@ -165,8 +199,8 @@ onUnmounted(() => {
     </div>
 
     <!-- Player -->
-    <div class="col-span-7 mt-8 h-[60vh] relative rounded-xl overflow-hidden bg-black">
-      <video ref="videoRef" :src="currentSource" class="w-full h-full object-cover" @play="isPlaying = true" @pause="isPlaying = false"></video>
+    <div class="lg:col-span-7 col-span-full mt-8 relative rounded-xl overflow-hidden bg-black aspect-video">
+      <video ref="videoRef" :src="currentSource" class="w-full h-full object-contain" @play="isPlaying = true" @pause="isPlaying = false"></video>
       <div class="absolute bottom-4 right-4 text-sm font-mono text-white bg-black/50 px-2 py-1 rounded">
         {{ remainingTime }}
       </div>
@@ -174,42 +208,65 @@ onUnmounted(() => {
       <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent flex items-center gap-4">
         <!-- Play / Pause -->
         <button @click="togglePlay" class="p-2 bg-neutral-700 rounded-full backdrop-blur">
-          <svg v-if="!isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+          <svg v-if="!isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="lg:size-6 size-4">
             <path fill-rule="evenodd" d="M18.75 12 5.25 21.213V2.787L18.75 12Z" clip-rule="evenodd" />
           </svg>
-          <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="lg:size-6 size-4">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.25h3v13.5h-3V5.25zm10.5 0h3v13.5h-3V5.25z" />
           </svg>
         </button>
         <!-- Rewind 10s -->
         <button @click="skip(-10)" class="p-2 bg-neutral-700 rounded-full backdrop-blur">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="lg:size-6 size-4">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5 4.5 12l8.25-7.5v15zM19.5 19.5 11.25 12l8.25-7.5v15z" />
           </svg>
         </button>
         <!-- Forward 10s -->
         <button @click="skip(10)" class="p-2 bg-neutral-700 rounded-full backdrop-blur">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="lg:size-6 size-4">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 4.5 19.5 12l-8.25 7.5V4.5zM4.5 4.5 12.75 12 4.5 19.5V4.5z" />
           </svg>
         </button>
+        <!-- Volume -->
+        <input type="range" min="0" max="1" step="0.01" v-model="volume" class="w-16" />
+
+        <!-- Speed -->
+        <select v-model="playbackRate" class="bg-neutral-700 p-1 lg:text-sm text-xs rounded">
+          <option value="0.5">0.5×</option>
+          <option value="1">1×</option>
+          <option value="1.5">1.5×</option>
+          <option value="2">2×</option>
+        </select>
+
+        <!-- Fullscreen -->
+        <!-- <button @click="toggleFullScreen" class="p-2 bg-neutral-700 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M8.25 3H5.25A2.25 2.25 0 003 5.25v3M15.75 3h3A2.25 2.25 0 0121 5.25v3M8.25 21H5.25A2.25 2.25 0 013 18.75v-3M15.75 21h3A2.25 2.25 0 0021 18.75v-3" />
+          </svg>
+        </button> -->
       </div>
+      <!-- Progress Bar -->
+      <input type="range" min="0" max="100" step="0.1" :value="progress" @input="seek" class="w-full mt-2 absolute bottom-0" />
     </div>
     <!-- Details -->
-    <div class="col-span-7 flex flex-col gap-2 mt-5" dir="ltr">
+    <div class="lg:col-span-7 col-span-full flex flex-col gap-2 mt-5" dir="ltr">
       <div class="flex items-center justify-between">
         <p>
-          <span class="text-lg font-semibold">movie Id:</span> <span>{{ movieData?.movieId }}</span>
+          <span class="lg:text-lg lg:font-semibold">movie Id:</span> <span class="sm:text-sm">{{ movieData?.movieId }}</span>
         </p>
         <p>
-          <span class="text-lg font-semibold">release:</span> <span>{{ movieData?.releaseYear }}</span>
+          <span class="lg:text-lg lg:font-semibold">release:</span> <span class="sm:text-sm">{{ movieData?.releaseYear }}</span>
         </p>
         <p>
-          <span class="text-lg font-semibold">rating:</span> <span>{{ movieData?.rating }}</span>
+          <span class="lg:text-lg lg:font-semibold">rating:</span> <span class="sm:text-sm">{{ movieData?.rating }}</span>
         </p>
       </div>
       <p>
-        <span class="text-lg font-semibold capitalize">description:</span> <span>{{ movieData?.description }}</span>
+        <span class="lg:text-lg lg:font-semibold capitalize">description:</span> <span> class="sm:text-sm"{{ movieData?.description }}</span>
       </p>
     </div>
   </div>
