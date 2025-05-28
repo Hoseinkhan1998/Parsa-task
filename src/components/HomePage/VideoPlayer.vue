@@ -2,15 +2,6 @@
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from "vue";
 import axios from "axios";
 
-onMounted(async () => {
-  try {
-    const response = await axios.get("https://6835cde6cd78db2058c33d5f.mockapi.io/movies");
-    console.log("Movie API Response:", response.data);
-  } catch (error) {
-    console.error("Error", error);
-  }
-});
-
 const remainingTime = ref("00:00");
 const formatTime = (time) => {
   const minutes = Math.floor(time / 60)
@@ -215,8 +206,7 @@ const otherMovies = ref([
           <video ref="videoRef" :src="currentSource" class="w-full h-full object-contain" @play="isPlaying = true" @pause="isPlaying = false"></video>
           <div class="absolute bottom-4 right-4 text-sm font-mono text-white bg-black/50 px-2 py-1 rounded">
             {{ remainingTime }}
-          </div>
-          <!-- کنترل‌ها -->
+          </div>          
           <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent flex items-center gap-4">
             <!-- Play / Pause -->
             <button @click="togglePlay" class="p-2 bg-neutral-700 rounded-full backdrop-blur">
