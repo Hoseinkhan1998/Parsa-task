@@ -145,7 +145,7 @@ const otherMovies = ref([
 
 <template>
   <div class="h-screen bg-neutral-800">
-    <div class="grid grid-cols-12 gap-5 text-neutral-100 bg-neutral-800 lg:px-14 sm:px-5 overflow-y-auto pt-10">
+    <div class="grid grid-cols-12 gap-5 text-neutral-100 bg-neutral-800 lg:px-14 sm:px-5 overflow-y-auto py-10">
       <div class="lg:col-span-7 col-span-full flex flex-col">
         <!-- Name & quality -->
         <div ref="videoContainerRef" class="flex lg:flex-row justify-between lg:items-center flex-col items-start">
@@ -207,7 +207,7 @@ const otherMovies = ref([
           <div class="absolute bottom-4 right-4 text-sm font-mono text-white bg-black/50 px-2 py-1 rounded">
             {{ remainingTime }}
           </div>          
-          <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent flex items-center gap-4">
+          <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent flex items-center gap-3">
             <!-- Play / Pause -->
             <button @click="togglePlay" class="p-2 bg-neutral-700 rounded-full backdrop-blur">
               <svg v-if="!isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="lg:size-6 size-4">
@@ -242,7 +242,7 @@ const otherMovies = ref([
 
             <!-- Fullscreen -->
             <button @click="toggleFullScreen" class="p-2 bg-neutral-700 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class=" size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
