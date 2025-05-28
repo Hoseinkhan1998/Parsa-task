@@ -22,6 +22,9 @@ const handleLogin = async () => {
     alert("Login failed.");
   }
 };
+
+axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+
 </script>
 
 <template>

@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 // import MainHomePage from "../components/HomePage/MainHomePage.vue";
 import Login from "../components/HomePage/Login.vue";
 import VideoPlayer from "../components/HomePage/VideoPlayer.vue";
+import axios from 'axios';
 
 const routes = [
   { path: "/", component: VideoPlayer, name: "home" },
@@ -23,5 +24,11 @@ router.beforeEach((to, from, next) => {
   }
   next();
 });
+
+const token = localStorage.getItem("token");
+if (token) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
+
 
 export default router;
